@@ -5,8 +5,8 @@ import morgan from 'morgan';
 
 const app = express();
 const PORT = 4000;
-const AUTH_SERVICE = 'http://localhost:3001/auth';
-const PRODUCT_SERVICE = 'http://localhost:3002/products';
+const AUTH_SERVICE = 'http://auth:3001/auth';
+const PRODUCT_SERVICE = 'http://product:3002/products';
 
 // Enable CORS for all routes   
 app.use(cors());
@@ -19,7 +19,7 @@ const apiProxyProducts = createProxyMiddleware(<Options>{
     target: PRODUCT_SERVICE,
     changeOrigin: true,
     pathRewrite: {
-        '^/api': '', // Remove /api prefix
+        '^/api/auth': '', // Remove /api prefix
     },
     onProxyReq: (proxyReq: any) => {
         console.log(`Proxying request to: ${PRODUCT_SERVICE}${proxyReq.path}`);
@@ -36,11 +36,13 @@ const apiProxyProducts = createProxyMiddleware(<Options>{
 const apiProxyAuth = createProxyMiddleware(<Options>{
     target: AUTH_SERVICE,
     changeOrigin: true,
+    timeout: 10000,
+    proxyTimeout: 10000,
     pathRewrite: {
         '^/api/auth': '/auth', // Remove /api prefix
     },
     onProxyReq: (proxyReq: any) => {
-        console.log(`Proxying request to: ${AUTH_SERVICE}${proxyReq.path}`);
+        console.log(`Proxying request to : ${AUTH_SERVICE}${proxyReq.path}`);
     },
     onProxyRes: (proxyRes: any, req: any) => {
         console.log(`Received response from: ${AUTH_SERVICE}${req.url} with status: ${proxyRes.statusCode}`);
@@ -57,6 +59,10 @@ app.use('/api/auth', apiProxyAuth);
 // Use product proxy for /api/products routes
 app.use('/api/products', apiProxyProducts);
 
+app.get('/', (_req, res) => {
+    res.send('API Gateway is running');
+}
+);
 // Add a catch-all route for debugging
 app.use('*', (req, res) => {
     console.log('Unhandled request:', req.method, req.originalUrl);
@@ -64,6 +70,6 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`API Gateway running on port ${PORT}`);
+    console.log(`API Gateway is running on : http://localhost:${PORT}`);
     console.log(`Proxying requests to ${AUTH_SERVICE || 'N/A'} and ${PRODUCT_SERVICE || 'N/A'}`);
 });

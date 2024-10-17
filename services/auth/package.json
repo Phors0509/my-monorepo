@@ -4,7 +4,7 @@
     "main": "index.js",
     "scripts": {
         "tsoa:gen": "tsoa spec && tsoa routes",
-        "dev": "yarn tsoa:gen && nodemon src/server.ts",
+        "dev": "yarn tsoa:gen && nodemon -L src/server.ts",
         "build": "node build-script.js",
         "start:local": "pm2 start ecosystem.config.local.js",
         "start": "pm2 start ecosystem.config.js",

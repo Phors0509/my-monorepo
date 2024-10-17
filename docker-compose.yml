@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+    # API Gateway service
+    api-gateway:
+        container_name: api-gateway_container
+        build:
+            context: ./services/api-gateway
+            dockerfile: Dockerfile.dev # Use your existing Dockerfile.dev
+        restart: always
+        ports:
+            - "4000:4000"
+        volumes:
+            - ./services/api-gateway/src:/app/src # Adjusted path for monorepo structure
+        depends_on:
+            - auth
+            - product
+    # Auth service
+    auth:
+        container_name: auth_container
+        build:
+            context: ./services/auth
+            dockerfile: Dockerfile.dev # Use your existing Dockerfile.dev
+        restart: always
+        ports:
+            - "3001:3001"
+        volumes:
+            - ./services/auth/src:/app/src # Adjusted path for monorepo structure
+        depends_on:
+            - mongodb # Depends on MongoDB
+        # Product service
+    product:
+        container_name: product_container
+        build:
+            context: ./services/product
+            dockerfile: Dockerfile.dev # Use your existing Dockerfile.dev
+        restart: always
+        ports:
+            - "3002:3002"
+        volumes:
+            - ./services/product/src:/app/src # Adjusted path for monorepo structure
+        depends_on:
+            - mongodb # Depends on MongoDB
+
+    # MongoDB service for both Auth and Product services
+    mongodb:
+        container_name: mongodb_container
+        image: mongo:latest
+        restart: always
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongodb_data:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: Sophorn
+            MONGO_INITDB_ROOT_PASSWORD: 123123
+            MONGO_INITDB_DATABASE: sharedDatabase # Use one shared database or separate collections
+
+volumes:
+    mongodb_data:

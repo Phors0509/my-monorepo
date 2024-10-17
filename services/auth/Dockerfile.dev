@@ -11,6 +11,6 @@ COPY nodemon.json ./
 COPY src ./src
 COPY tsoa.json ./
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["npm","run","dev"]
