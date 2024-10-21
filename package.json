@@ -11,9 +11,9 @@
         "services/api-gateway"
     ],
     "scripts": {
+        "start:api-gateway": "yarn workspace api-gateway-service dev",
         "start:auth": "yarn workspace auth-service dev",
         "start:product": "yarn workspace product-service dev",
-        "start:api-gateway": "yarn workspace api-gateway-service dev",
         "dev": "concurrently \"yarn start:auth\" \"yarn start:product\" \"yarn start:api-gateway\""
     },
     "dependencies": {},

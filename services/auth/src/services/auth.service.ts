@@ -61,11 +61,27 @@ export class AuthService {
         try {
             const response = await axios.post(tokenUrl, params.toString(), { headers });
             return response.data;
-        } catch (error) {
-            console.error('AuthService - handleCallback(): Failed to get tokens from Cognito', error);
+        } catch (error: any) {
+            if (error.response) {
+                console.error('AuthService - handleCallback(): Failed to get tokens from Cognito', {
+                    status: error.response.status,
+                    data: error.response.data,
+                });
+
+                if (error.response.data.error === 'invalid_grant') {
+                    console.error('The authorization code has already been used or expired.');
+                } else {
+                    console.error('Other error:', error.response.data);
+                }
+            } else {
+                console.error('Request failed:', error.message);
+            }
             throw error;
         }
     }
+
+
+
 
     public async getAllUsers(page: number = 1, limit: number = 10) {
         try {

@@ -104,9 +104,12 @@ export class AuthController extends Controller {
             const tokens = await AuthService.handleCallback(code, state);
 
             // Set cookies
-            setCookie(response, 'id_token', tokens.id_token);
-            setCookie(response, 'access_token', tokens.access_token);
-            setCookie(response, 'refresh_token', tokens.refresh_token);
+            setCookie(response, 'id_token', tokens.id_token, { maxAge: 60 * 60 * 1000 }); // 1 hour
+            setCookie(response, 'access_token', tokens.access_token, { maxAge: 60 * 60 * 1000 });
+            setCookie(response, 'refresh_token', tokens.refresh_token, { maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+            console.log('AuthController - cognitoCallback(): Authentication successful');
+            console.log('AuthController - cognitoCallback(): Tokens:', tokens);
 
             return sendResponse({
                 status: 200,
@@ -114,17 +117,14 @@ export class AuthController extends Controller {
                 data: null,
             });
         } catch (error) {
-            console.error('AuthController - cognitoCallback(): Authentication failed', error);
+            console.error('AuthController - cognitoCallback(): Authentication failed');
             return sendResponse({
                 status: 500,
                 message: 'Authentication failed',
-                data: null,
+                data: error,
             });
         }
     }
-
-
-
 
     @Get('/user/{email}/attributes')
     public async getUserAttributes(@Path() email: string): Promise<UserAttributesResponse> {

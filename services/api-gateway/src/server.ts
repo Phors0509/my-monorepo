@@ -1,75 +1,21 @@
-import express from 'express';
-import { createProxyMiddleware, Options } from 'http-proxy-middleware';
-import cors from 'cors';
-import morgan from 'morgan';
+// server.ts
+import { createServer } from 'http';
+import app from '@/app';
+import configs from '@/configs';
 
-const app = express();
-const PORT = 4000;
-const AUTH_SERVICE = 'http://auth:3001/auth';
-const PRODUCT_SERVICE = 'http://product:3002/products';
+const startServer = async () => {
+    try {
+        const server = createServer(app);
 
-// Enable CORS for all routes   
-app.use(cors());
+        server.listen(configs.port, () => {
+            console.log(`========================================================`);
+            console.log(`API Gateway is running on: http://localhost:${configs.port}`);
+            console.log(`========================================================`);
+        });
+    } catch (error) {
+        console.error('Server: Server error:', error);
+        process.exit(1);
+    }
+};
 
-// Add morgan for logging
-app.use(morgan('dev'));
-
-// Proxy middleware configuration
-const apiProxyProducts = createProxyMiddleware(<Options>{
-    target: PRODUCT_SERVICE,
-    changeOrigin: true,
-    pathRewrite: {
-        '^/api/auth': '', // Remove /api prefix
-    },
-    onProxyReq: (proxyReq: any) => {
-        console.log(`Proxying request to: ${PRODUCT_SERVICE}${proxyReq.path}`);
-    },
-    onProxyRes: (proxyRes: any, req: any) => {
-        console.log(`Received response from: ${PRODUCT_SERVICE}${req.url} with status: ${proxyRes.statusCode}`);
-    },
-    onError: (err: any, res: any) => {
-        console.error('Proxy error:', err);
-        res.status(500).send('Proxy Error');
-    },
-});
-
-const apiProxyAuth = createProxyMiddleware(<Options>{
-    target: AUTH_SERVICE,
-    changeOrigin: true,
-    timeout: 10000,
-    proxyTimeout: 10000,
-    pathRewrite: {
-        '^/api/auth': '/auth', // Remove /api prefix
-    },
-    onProxyReq: (proxyReq: any) => {
-        console.log(`Proxying request to : ${AUTH_SERVICE}${proxyReq.path}`);
-    },
-    onProxyRes: (proxyRes: any, req: any) => {
-        console.log(`Received response from: ${AUTH_SERVICE}${req.url} with status: ${proxyRes.statusCode}`);
-    },
-    onError: (err: any, res: any) => {
-        console.error('Proxy error:', err);
-        res.status(500).send('Proxy Error');
-    },
-});
-
-// Use the proxy middleware for all routes
-app.use('/api/auth', apiProxyAuth);
-
-// Use product proxy for /api/products routes
-app.use('/api/products', apiProxyProducts);
-
-app.get('/', (_req, res) => {
-    res.send('API Gateway is running');
-}
-);
-// Add a catch-all route for debugging
-app.use('*', (req, res) => {
-    console.log('Unhandled request:', req.method, req.originalUrl);
-    res.status(404).send('Not Found');
-});
-
-app.listen(PORT, () => {
-    console.log(`API Gateway is running on : http://localhost:${PORT}`);
-    console.log(`Proxying requests to ${AUTH_SERVICE || 'N/A'} and ${PRODUCT_SERVICE || 'N/A'}`);
-});
+startServer();
